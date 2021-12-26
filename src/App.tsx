@@ -2,7 +2,7 @@ import './App.scss';
 import { FieldComponent } from './components/FieldComponent/FieldComponent';
 import { MenuComonent } from './components/MenuComonent/MenuComonent';
 import { StatsComponent } from './components/StatsComponent/StatsComponent';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Cell, CellTypeEnum } from './common/cell';
 
 function App() {
@@ -13,6 +13,10 @@ function App() {
     const [ state, setState ] = useState({
         field: [] as Cell[][],
     });
+
+    useEffect(() => {
+        newGameClick();
+    }, []);
 
     function newGameClick() {
         console.log('new game starting');
@@ -78,11 +82,12 @@ function App() {
                 if (!fields[rIndex][cIndex].isOpen
                   && (
                     fields[rIndex][cIndex].type === CellTypeEnum.empty
-                    &&  fields[rIndex][cIndex].minesAround === 0
                   )
                 ) {
                     fields[rIndex][cIndex].open();
-                    openEmptyFields(fields, { rowIndex: rIndex, cellIndex: cIndex });
+                    if (fields[rIndex][cIndex].minesAround === 0) {
+                        openEmptyFields(fields, {rowIndex: rIndex, cellIndex: cIndex});
+                    }
                 }
             }
         }
@@ -106,6 +111,15 @@ function App() {
         }
     }
 
+    function onCellRightClick(cellId: any) {
+        const indexes = getIndexesById(cellId);
+        const newFields = state.field;
+        if (!newFields[indexes.rowIndex][indexes.cellIndex].isOpen) {
+            newFields[indexes.rowIndex][indexes.cellIndex].toggle();
+            setState({ field: newFields });
+        }
+    }
+
     function getIndexesById(id: string): {rowIndex: number, cellIndex: number} {
         const split = id.split('_');
         if (split.length !== 2) {
@@ -121,7 +135,7 @@ function App() {
     return (
         <div className="row">
             <div className="col-8">
-                <FieldComponent field={state.field} onCellClick={onCellClick}/>
+                <FieldComponent field={state.field} onCellClick={onCellClick} onCellRightClick={onCellRightClick}/>
             </div>
             <div className="col-4">
                 <MenuComonent newGameClick={newGameClick}/>

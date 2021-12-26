@@ -1,13 +1,19 @@
 import './CellComponent.scss';
-import {Cell, CellTypeEnum} from "../../common/cell";
-import useForceUpdate from 'use-force-update';
+import {Cell, CellTypeEnum, CellViewTypeEnum} from "../../common/cell";
 
-export function CellComponent(props: { onCellClick: any,  cell: Cell}) {
-    const forceUpdate = useForceUpdate();
+export function CellComponent(props: { onCellClick: any, onCellRightClick: any, cell: Cell}) {
 
 
     function getCellClass(value: Cell) {
         if (!value.isOpen) {
+            switch (value.viewType) {
+                case CellViewTypeEnum.empty:
+                    return 'close';
+                case CellViewTypeEnum.mine:
+                    return 'view-mine';
+                case CellViewTypeEnum.unknown:
+                    return 'view-unknown';
+            }
             return 'close';
         }
 
@@ -32,12 +38,18 @@ export function CellComponent(props: { onCellClick: any,  cell: Cell}) {
 
     function cellLeftClick() {
         props.onCellClick(props.cell.id);
-        forceUpdate();
+    }
+
+    function cellRightClick(event: any) {
+        event.stopPropagation();
+        event.preventDefault();
+        props.onCellRightClick(props.cell.id);
     }
 
     return (
         <div
             onClick={cellLeftClick}
+            onContextMenu={cellRightClick}
             key={props.cell.id}
             className={`cell-wrapper ${getCellClass(props.cell)}`}>
             {/*<span style={{fontSize: "9px", padding: "10px"}}>{ props.cell.debugInfo }</span>*/}
