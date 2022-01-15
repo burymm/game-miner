@@ -4,6 +4,29 @@
 
 }
 
+.field-component {
+    position: relative;
+}
+
+.game-status-wrapper {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    .status-title {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 10px 10px white;
+        background: rgba(255, 255, 255, 1);
+        border-radius: 20px;
+    }
+}
+
 .field-cell {
     border: 1px solid #000;
     min-height: 40px;

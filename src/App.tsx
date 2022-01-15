@@ -1,18 +1,33 @@
 import './App.scss';
 import { FieldComponent } from './components/FieldComponent/FieldComponent';
 import { MenuComonent } from './components/MenuComonent/MenuComonent';
-import { StatsComponent } from './components/StatsComponent/StatsComponent';
-import { useState, useEffect } from 'react';
-import { Cell, CellTypeEnum } from './common/cell';
+import {StatsComponent} from './components/StatsComponent/StatsComponent';
+import {useEffect, useState} from 'react';
+import {Cell, CellTypeEnum} from './common/cell';
+
+export enum GameStatus {
+    inProgress = 'inProgress',
+    lose = 'lose',
+    win = 'win',
+    notStarted = 'notStarted'
+}
+
+interface AppState {
+    field: Cell[][],
+    status: GameStatus,
+}
 
 function App() {
     const ROW_LENGTH = 5;
     const CELL_LENGTH = 5;
     const MINES_COUNT = 3;
 
+    let gameStatus: GameStatus;
+
     const [ state, setState ] = useState({
-        field: [] as Cell[][],
-    });
+        field: [],
+        status: GameStatus.notStarted,
+    } as AppState);
 
     useEffect(() => {
         newGameClick();
@@ -63,9 +78,11 @@ function App() {
         }
 
         console.log('field', rows);
+        gameStatus = GameStatus.inProgress;
 
         setState({
             field: rows,
+            status: gameStatus,
         });
     }
 
@@ -96,27 +113,47 @@ function App() {
     function onCellClick(cellId: any) {
         const indexes = getIndexesById(cellId);
         const newFields = state.field;
+
         if (!newFields[indexes.rowIndex][indexes.cellIndex].isOpen) {
             switch (newFields[indexes.rowIndex][indexes.cellIndex].type) {
                 case CellTypeEnum.empty:
                     if (newFields[indexes.rowIndex][indexes.cellIndex].minesAround === 0) {
                         openEmptyFields(newFields, indexes);
                     }
+                    newFields[indexes.rowIndex][indexes.cellIndex].open();
+                    setState({ field: newFields, status: state.status });
 
                     break;
+                case CellTypeEnum.mine:
+                    newFields[indexes.rowIndex][indexes.cellIndex].open();
+                    gameOver(GameStatus.lose);
+                    break;
             }
-
-            newFields[indexes.rowIndex][indexes.cellIndex].open();
-            setState({ field: newFields });
         }
+    }
+
+    function gameOver(status: GameStatus) {
+        gameStatus = status;
+        const newFields = state.field;
+        for (let rowIndex = 0; rowIndex < newFields.length; rowIndex += 1) {
+            for (let cellIndex = 0; cellIndex < newFields[rowIndex].length; cellIndex += 1) {
+                switch (newFields[rowIndex][cellIndex].type) {
+                    case CellTypeEnum.mine:
+
+                        break;
+                }
+            }
+        }
+        setState({ status: status, field: state.field});
     }
 
     function onCellRightClick(cellId: any) {
         const indexes = getIndexesById(cellId);
         const newFields = state.field;
+
         if (!newFields[indexes.rowIndex][indexes.cellIndex].isOpen) {
             newFields[indexes.rowIndex][indexes.cellIndex].toggle();
-            setState({ field: newFields });
+            setState({ field: newFields, status: state.status});
         }
     }
 
@@ -135,11 +172,12 @@ function App() {
     return (
         <div className="row">
             <div className="col-8">
-                <FieldComponent field={state.field} onCellClick={onCellClick} onCellRightClick={onCellRightClick}/>
+                <FieldComponent gameStatus={state.status} field={state.field} onCellClick={onCellClick} onCellRightClick={onCellRightClick}/>
             </div>
             <div className="col-4">
                 <MenuComonent newGameClick={newGameClick}/>
-                <StatsComponent/>
+                <h2>={state.status}=</h2>
+                <StatsComponent status={state.status}/>
             </div>
         </div>
 
